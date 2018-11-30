@@ -20,6 +20,9 @@ esp_err_t kv_store(char *region, char *key, void *val, size_t len);
 
 esp_err_t kv_load(char *region, char *key, void **val, size_t *len);
 
+bool memory_error_check(esp_err_t err);
+
+
 //bool store_wifi_login(struct Wifi_login wifi);
 //
 //bool load_wifi_login(struct Wifi_login *wifi);
