@@ -7,10 +7,8 @@
 
 #include <esp_log.h>
 #include <nvs.h>
-//#include <ubirch_protocol.h>
 #include <nvs_flash.h>
-//#include "key_handling.h"
-//#include "networking.h"
+
 #include "storage.h"
 
 static const char *TAG = "storage";
@@ -24,27 +22,36 @@ void init_nvs() {
     ESP_ERROR_CHECK(err);
 }
 
+
+/*!
+ * Cleanup the nvs storage handle after using it.
+ *
+ * @param[in]   handle  handle of the nvs
+ * @param[in]   err     error during nvs operations
+ * @return      error, which was passed into
+ */
 static esp_err_t storage_cleanup(nvs_handle handle, esp_err_t err){
     ESP_LOGD(TAG, "cleanup");
     nvs_close(handle);
     return err;
 }
 
+
 esp_err_t kv_store(char *region, char *key, void *val, size_t len) {
     nvs_handle storage_handle;
-
+    ESP_LOGD(TAG, "%s", __func__);
     //open the memory
     esp_err_t err = nvs_open(region, NVS_READWRITE, &storage_handle);
     if (err != ESP_OK) return err;
     // get the length of the current stored value
     size_t temp_len;
     err = nvs_get_blob(storage_handle, key, NULL, &temp_len);
-    if (err != ESP_OK) return storage_cleanup(storage_handle, err);
+    if ((err != ESP_OK) && (err != ESP_ERR_NVS_NOT_FOUND)) return storage_cleanup(storage_handle, err);
 
     // delete the element, if the length is different from the previous length
     if (temp_len != len) {
         err = nvs_erase_key(storage_handle, key);
-        if (err != ESP_OK) return storage_cleanup(storage_handle, err);
+        if ((err != ESP_OK) && (err != ESP_ERR_NVS_NOT_FOUND)) return storage_cleanup(storage_handle, err);
     }
     ESP_LOGD(TAG, "store %s", (char*)val);
     err = nvs_set_blob(storage_handle, key, val, len);
@@ -54,8 +61,10 @@ esp_err_t kv_store(char *region, char *key, void *val, size_t len) {
     return storage_cleanup(storage_handle, err);
 }
 
+
 esp_err_t kv_load(char *region, char *key, void **val, size_t *len) {
     nvs_handle storage_handle;
+    ESP_LOGD(TAG, "%s", __func__);
 
     //open the memory
     esp_err_t err = nvs_open(region, NVS_READONLY, &storage_handle);
