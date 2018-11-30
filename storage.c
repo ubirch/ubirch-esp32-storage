@@ -25,6 +25,7 @@ void init_nvs() {
 }
 
 static esp_err_t storage_cleanup(nvs_handle handle, esp_err_t err){
+    ESP_LOGD(TAG, "cleanup");
     nvs_close(handle);
     return err;
 }
@@ -63,7 +64,6 @@ esp_err_t kv_load(char *region, char *key, void **val, size_t *len) {
     err = nvs_get_blob(storage_handle, key, NULL, len);
     if (err != ESP_OK) return storage_cleanup(storage_handle, err);
     ESP_LOGD(TAG, " len = %d", *len);
-
     *val = malloc(*len);
     err = nvs_get_blob(storage_handle, key, *val, len);
     ESP_LOGD(TAG, "load %s", (char*)*val);
@@ -100,6 +100,8 @@ bool memory_error_check(esp_err_t err) {
         case ESP_ERR_NVS_VALUE_TOO_LONG:
             ESP_LOGW(TAG, "memory value too long");
             break;
+        case ESP_ERR_NVS_NOT_FOUND:
+            ESP_LOGW(TAG, "key not found");
         default:
             ESP_LOGW(TAG, "no handle for %d", err);
             break;
