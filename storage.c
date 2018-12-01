@@ -30,7 +30,7 @@ void init_nvs() {
  * @param[in]   err     error during nvs operations
  * @return      error, which was passed into
  */
-static esp_err_t storage_cleanup(nvs_handle handle, esp_err_t err){
+static esp_err_t storage_cleanup(nvs_handle handle, esp_err_t err) {
     ESP_LOGD(TAG, "cleanup");
     nvs_close(handle);
     return err;
@@ -53,7 +53,7 @@ esp_err_t kv_store(char *region, char *key, void *val, size_t len) {
         err = nvs_erase_key(storage_handle, key);
         if ((err != ESP_OK) && (err != ESP_ERR_NVS_NOT_FOUND)) return storage_cleanup(storage_handle, err);
     }
-    ESP_LOGD(TAG, "store %s", (char*)val);
+    ESP_LOG_BUFFER_HEXDUMP(TAG, val, (uint16_t) len, ESP_LOG_DEBUG);
     err = nvs_set_blob(storage_handle, key, val, len);
     if (err != ESP_OK) return storage_cleanup(storage_handle, err);
 
@@ -72,10 +72,9 @@ esp_err_t kv_load(char *region, char *key, void **val, size_t *len) {
     // get the length of the current stored value
     err = nvs_get_blob(storage_handle, key, NULL, len);
     if (err != ESP_OK) return storage_cleanup(storage_handle, err);
-    ESP_LOGD(TAG, " len = %d", *len);
     *val = malloc(*len);
     err = nvs_get_blob(storage_handle, key, *val, len);
-    ESP_LOGD(TAG, "load %s", (char*)*val);
+    ESP_LOG_BUFFER_HEXDUMP(TAG, *val, (uint16_t) *len, ESP_LOG_DEBUG);
     return storage_cleanup(storage_handle, err);
 }
 
