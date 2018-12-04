@@ -1,6 +1,28 @@
-//
-// Created by wowa on 14.11.18.
-//
+/*!
+ * @file    storage.c
+ * @brief TODO: ${FILE}
+ *
+ * ...
+ *
+ * @author Waldemar Gruenwald
+ * @date   2018-11-14
+ *
+ * @copyright &copy; 2018 ubirch GmbH (https://ubirch.com)
+ *
+ * ```
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * ```
+ */
 
 #define LOG_LOCAL_LEVEL ESP_LOG_DEBUG
 
@@ -36,10 +58,33 @@ static esp_err_t storage_cleanup(nvs_handle handle, esp_err_t err) {
     return err;
 }
 
+/*!
+ * code example:
+ *
+ * char *array = "this is a cha array"
+ * size_t a_len = sizeof(array)
+ * kv_store("region", "key", array, a_len);
+ *
+ * size_t da_len = 5;
+ * char defined_array[da_len] = "hallo";
+ * kv_store("region", "def_key", defined_array, da_len);
+ *
+ * // now load the data:
+ * // uninitialized
+ * char *load array;
+ * size_t l_len = 0;
+ * kv_load("region", "key", (void **)&load_array, &l_len);
+ *
+ * //already initialized:
+ * char *p_defined_array = defined_array;
+ * kv_load("region", "dev_key", (void **)&p_defined_array, &da_len);
+ *
+ * */
+
 
 esp_err_t kv_store(char *region, char *key, void *val, size_t len) {
     nvs_handle storage_handle;
-    ESP_LOGD(TAG, "%s", __func__);
+    ESP_LOGD(__func__, "%s", key);
     //open the memory
     esp_err_t err = nvs_open(region, NVS_READWRITE, &storage_handle);
     if (err != ESP_OK) return err;
@@ -62,17 +107,30 @@ esp_err_t kv_store(char *region, char *key, void *val, size_t len) {
 }
 
 
+
 esp_err_t kv_load(char *region, char *key, void **val, size_t *len) {
-    nvs_handle storage_handle;
-    ESP_LOGD(TAG, "%s", __func__);
+    nvs_handle storage_handle;  //!< storage handle
+    size_t blob_len = 0;        //!< actual length of the blob to read
+    ESP_LOGD(__func__, "%s", key);
 
     //open the memory
+    ESP_LOGD(__func__, "open");
     esp_err_t err = nvs_open(region, NVS_READONLY, &storage_handle);
     if (err != ESP_OK) return err;
     // get the length of the current stored value
-    err = nvs_get_blob(storage_handle, key, NULL, len);
+    ESP_LOGD(__func__, "get length");
+    err = nvs_get_blob(storage_handle, key, NULL, &blob_len);
     if (err != ESP_OK) return storage_cleanup(storage_handle, err);
-    *val = malloc(*len);
+    ESP_LOGD(__func__, "blob_len = %d , len = %d", blob_len, *len);
+    // check if TODO
+    if (*len == 0) {  // no val buffer yet, allocate new memory space
+        ESP_LOGD(__func__, "l == 0");
+        *val = malloc(blob_len);
+    } else if (blob_len > *len) {
+        return storage_cleanup(storage_handle, ESP_ERR_NVS_INVALID_LENGTH);
+    }
+    *len = blob_len;    // set the correct length and get the data
+    ESP_LOGD(__func__, "get blob");
     err = nvs_get_blob(storage_handle, key, *val, len);
     ESP_LOG_BUFFER_HEXDUMP(TAG, *val, (uint16_t) *len, ESP_LOG_DEBUG);
     return storage_cleanup(storage_handle, err);
@@ -84,7 +142,7 @@ esp_err_t kv_load(char *region, char *key, void **val, size_t *len) {
  *
  * return error: true, if memory error, false otherwise
  */
-bool memory_error_check(esp_err_t err) {
+esp_err_t memory_error_check(esp_err_t err) {
     bool error = true;
     switch (err) {
         case ESP_OK:
@@ -110,6 +168,8 @@ bool memory_error_check(esp_err_t err) {
             break;
         case ESP_ERR_NVS_NOT_FOUND:
             ESP_LOGW(TAG, "key not found");
+        case ESP_ERR_NVS_INVALID_LENGTH:
+            ESP_LOGW(TAG, "value does not fit into buffer");
         default:
             ESP_LOGW(TAG, "no handle for %d", err);
             break;
