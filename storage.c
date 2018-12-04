@@ -121,9 +121,10 @@ esp_err_t kv_load(char *region, char *key, void **val, size_t *len) {
     ESP_LOGD(__func__, "get length");
     err = nvs_get_blob(storage_handle, key, NULL, &blob_len);
     if (err != ESP_OK) return storage_cleanup(storage_handle, err);
+    ESP_LOGD(__func__, "blob_len = %d , len = %d", blob_len, *len);
     // check if TODO
     if (*len == 0) {  // no val buffer yet, allocate new memory space
-        ESP_LOGD(__func__, "l = 0");
+        ESP_LOGD(__func__, "l == 0");
         *val = malloc(blob_len);
     } else if (blob_len > *len) {
         return storage_cleanup(storage_handle, ESP_ERR_NVS_INVALID_LENGTH);
