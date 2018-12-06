@@ -107,7 +107,7 @@ esp_err_t kv_store(char *region, char *key, void *val, size_t len) {
 }
 
 
-
+//todo ask for len, it should not be too big
 esp_err_t kv_load(char *region, char *key, void **val, size_t *len) {
     nvs_handle storage_handle;  //!< storage handle
     size_t blob_len = 0;        //!< actual length of the blob to read
