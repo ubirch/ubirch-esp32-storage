@@ -61,12 +61,12 @@ static esp_err_t storage_cleanup(nvs_handle handle, esp_err_t err) {
 /*!
  * code example:
  *
- * char *array = "this is a cha array"
+ * char *array = "this is a char array"
  * size_t a_len = sizeof(array)
  * kv_store("region", "key", array, a_len);
  *
  * size_t da_len = 5;
- * char defined_array[da_len] = "hallo";
+ * char defined_array[da_len] = "hello";
  * kv_store("region", "def_key", defined_array, da_len);
  *
  * // now load the data:
@@ -107,11 +107,15 @@ esp_err_t kv_store(char *region, char *key, void *val, size_t len) {
 }
 
 
-//todo ask for len, it should not be too big
 esp_err_t kv_load(char *region, char *key, void **val, size_t *len) {
     nvs_handle storage_handle;  //!< storage handle
     size_t blob_len = 0;        //!< actual length of the blob to read
     ESP_LOGD(__func__, "%s", key);
+
+    // check the length, if bigger then 4 MB, return invalid length
+    if(*len >  0x400000){
+        return ESP_ERR_NVS_INVALID_LENGTH;
+    }
 
     //open the memory
     ESP_LOGD(__func__, "open");
