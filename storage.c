@@ -172,8 +172,10 @@ esp_err_t memory_error_check(esp_err_t err) {
             break;
         case ESP_ERR_NVS_NOT_FOUND:
             ESP_LOGW(TAG, "key not found");
+            break;
         case ESP_ERR_NVS_INVALID_LENGTH:
             ESP_LOGW(TAG, "value does not fit into buffer");
+            break;
         default:
             ESP_LOGW(TAG, "no handle for %d", err);
             break;
