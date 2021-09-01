@@ -1,4 +1,4 @@
-![ubirch logo](https://ubirch.de/fileadmin/Bilder/Presse/UBIRCH_Wort_Bildmarke_black_quer.png){:height="20%" width="20%"}
+![ubirch logo]()
 
 # ESP32 ubirch storage functionality
 
