@@ -77,6 +77,20 @@ esp_err_t kv_store(char *region, char *key, void *val, size_t len);
  */
 esp_err_t kv_load(char *region, char *key, void **val, size_t *len);
 
+
+/*!
+ * Delete a key value pair from the flash memory.
+ *
+ * @param[in]       region  string of the memory region to read from (max 15 characters)
+ * @param[in]       key     string of the specified key (max. 15 characters)
+ *
+ * @return
+ *             - ESP_OK if value was deleted successfully
+ *             - ESP_ERR_... (for details, see nvs.h)
+ */
+esp_err_t kv_delete(char *region, char *key);
+
+
 /*!
  * Log output for any memory handling error
  *

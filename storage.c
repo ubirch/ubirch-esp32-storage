@@ -140,6 +140,21 @@ esp_err_t kv_load(char *region, char *key, void **val, size_t *len) {
     return storage_cleanup(storage_handle, err);
 }
 
+esp_err_t kv_delete(char *region, char *key) {
+    nvs_handle storage_handle;
+    //open the memory
+    esp_err_t err = nvs_open(region, NVS_READWRITE, &storage_handle);
+    if (err != ESP_OK) return err;
+
+    // delete the key value pair
+    err = nvs_erase_key(storage_handle, key);
+    if ((err != ESP_OK) && (err != ESP_ERR_NVS_NOT_FOUND)) {
+        return storage_cleanup(storage_handle, err);
+    }
+    err = nvs_commit(storage_handle);
+    return storage_cleanup(storage_handle, err);
+}
+
 
 /*
  * check for possible memory handling errors
